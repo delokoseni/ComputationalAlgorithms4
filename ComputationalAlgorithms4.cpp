@@ -23,6 +23,8 @@ std::vector<double> SetAlphas(std::vector<std::vector<double>> Matrix, std::vect
 std::vector<double> SetBettas(std::vector<std::vector<double>> Matrix, std::vector<double> FreeMembersColumn, 
                               std::vector<double> Alphas);
 
+//splineoutput and GetFunctionBySpline наверно неправильные
+
 int main()
 {
     SetConsoleCP(1251);
@@ -51,7 +53,7 @@ int main()
     std::vector<double> ArgumentValuesArray(AmountOfValues); //Массив значений аргументов (для режима 2)
     std::vector<double> Deviations(AmountOfValues); //Отклонения
     double MaxDeviation = 0.0; //Максимальное отклонение
-
+    double j = 0.1;
     switch (SelectedMode)
     {
     case '1':
@@ -61,7 +63,7 @@ int main()
         std::cout << "Введите точку для определения приближенного значения функции: ";
         double PointX;
         std::cin >> PointX;
-        std::cout << GetFunctionBySpline(Table, GetSplineCoefficients(Table), PointX);
+        std::cout << "y = " << GetFunctionBySpline(Table, GetSplineCoefficients(Table), PointX) << std::endl;
         break;
     case '2':
         std::cout << "Пример функции: sqrt(abs(x))" << std::endl;
@@ -185,10 +187,6 @@ std::vector<double> GetDeviations(std::vector<std::vector<double>> Table)
     std::vector<double> Deviations(Table[0].size());
     for (int i = 0; i < Table[0].size(); i++)
         Deviations[i] = fabs(Table[1][i] - GetFunctionBySpline(Table, GetSplineCoefficients(Table), Table[0][i]));
-    for (int i = 0; i < Table[0].size(); i++)
-        std::cout << GetFunctionBySpline(Table, GetSplineCoefficients(Table), Table[0][i]) << "\n";
-
-
     return Deviations;
 }
 //Вывод вектора
@@ -271,6 +269,16 @@ std::vector<std::vector<double>> GetSplineCoefficients(std::vector<std::vector<d
     std::vector<double> B(Table[1].size());
     for (int i = 1; i < B.size(); i++)
         B[i] = (H[i-1] * C[i] / 2) - (H[i-1] * H[i-1] * D[i] / 6) + (Table[1][i] - Table[1][i - 1]) / H[i-1];
+
+    for (int i = 0; i < B.size(); i++)
+        std::cout << B[i] << " ";
+    std::cout << std::endl;
+    for (int i = 0; i < C.size(); i++)
+        std::cout << C[i] << " ";;
+    std::cout << std::endl;
+    for (int i = 0; i < D.size(); i++)
+        std::cout << D[i] << " ";;
+    std::cout << std::endl;
     return {Table[1], B, C, D};
 }
 //Вычисляет значение y используя сплайн
