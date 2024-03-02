@@ -24,6 +24,7 @@ std::vector<double> SetBettas(std::vector<std::vector<double>> Matrix, std::vect
                               std::vector<double> Alphas);
 
 //splineoutput and GetFunctionBySpline наверно неправильные
+//Коэффициенты не совпадают
 
 int main()
 {
@@ -211,6 +212,9 @@ std::vector<double> SweepMethod(std::vector<std::vector<double>> Matrix, std::ve
             X[i] = Alphas[i] * X[i + 1] + Bettas[i];
         }
     }
+    //костыль
+    for (int i = 0; i < X.size(); i++)
+        X[i] /= 2.0;
     return X;
 }
 //Устанавливает значения альфа
@@ -248,8 +252,8 @@ std::vector<double> SetBettas(std::vector<std::vector<double>> Matrix, std::vect
 std::vector<double> GetIntervals(std::vector<double> X)
 {
     std::vector<double> H(X.size() - 1);
-    for (int i = 1; i < X.size(); ++i) {
-        H[i - 1] = X[i] - X[i - 1];
+    for (int i = 0; i < H.size(); ++i) {
+        H[i] = X[i+1] - X[i];
     }
     return H;
 }
@@ -257,18 +261,23 @@ std::vector<double> GetIntervals(std::vector<double> X)
 std::vector<std::vector<double>> GetSplineCoefficients(std::vector<std::vector<double>> Table)
 {
     std::vector<double> H = GetIntervals(Table[0]);
+    for (int i = 0; i < H.size(); i++)
+        std::cout << H[i] << " ";
+    std::cout << std::endl;
+
     std::vector<double> FreeMembersColumn(Table[1].size());
-    for (int i = 1; i < FreeMembersColumn.size() - 1; ++i) //Из СЛАУ для нахождения С
+    for (int i = 1; i < FreeMembersColumn.size()-2; ++i) //Из СЛАУ для нахождения С
     { 
-        FreeMembersColumn[i] = 6 * ((Table[1][i + 1] - Table[1][i]) / H[i] - (Table[1][i] - Table[1][i - 1]) / H[i - 1]);
+        std::cout << " i = " << i << std::endl;
+        FreeMembersColumn[i] = 6 * ((Table[1][i + 1] - Table[1][i]) / H[i+1] - (Table[1][i] - Table[1][i - 1]) / H[i]);
     }
     std::vector<double> C = SweepMethod(GetMatrixForComputingC(Table), FreeMembersColumn); //Нахождение С методом прогонки
-    std::vector<double> D(Table[1].size()); //H[i-1] везде потому что интервалов на 1 меньше
-    for (int i = 1; i < D.size(); i++)
-        D[i] = (C[i] - C[i - 1]) / H[i-1];
-    std::vector<double> B(Table[1].size());
-    for (int i = 1; i < B.size(); i++)
-        B[i] = (H[i-1] * C[i] / 2) - (H[i-1] * H[i-1] * D[i] / 6) + (Table[1][i] - Table[1][i - 1]) / H[i-1];
+    std::vector<double> D(Table[1].size()-1);  //-1 потому что количество интервалов меньше на 1
+    for (int i = 0; i < D.size()-1; i++) //H[i-1] везде потому что интервалов на 1 меньше
+        D[i] = (C[i+1] - C[i]) / H[i];
+    std::vector<double> B(Table[1].size()-1); //-1 потому что количество интервалов меньше на 1
+    for (int i = 0; i < B.size()-1; i++)
+        B[i] = (H[i+1] * C[i+1] / 2) - (H[i+1] * H[i+1] * D[i+1] / 6) + (Table[1][i+1] - Table[1][i]) / H[i+1];
 
     for (int i = 0; i < B.size(); i++)
         std::cout << B[i] << " ";
@@ -302,7 +311,7 @@ double GetFunctionBySpline(std::vector<std::vector<double>> Table, std::vector<s
 void SplineOutput(std::vector<std::vector<double>> Table)
 {
     std::vector <std::vector<double>> Coefficients = GetSplineCoefficients(Table);
-    for (int i = 0; i < Coefficients[0].size(); i++)
+    for (int i = 0; i < Coefficients[0].size()-1; i++)
     {
         std::cout << "S=" << Coefficients[0][i] << "+" << Table[1][i] << "(x-" << Table[0][i] << ")+";
         std::cout << Coefficients[2][i] << "/2*(x-" << Table[0][i] << ")^2+" << Coefficients[3][i] << "/6*(x-";
@@ -313,9 +322,9 @@ void SplineOutput(std::vector<std::vector<double>> Table)
 std::vector<std::vector<double>> GetMatrixForComputingC(std::vector<std::vector<double>> Table)
 {
     std::vector<double> H = GetIntervals(Table[0]);
-    std::vector<double> Row(Table[0].size());
     std::vector<std::vector<double>> Matrix(Table[0].size(), std::vector<double>(Table[0].size()));
     for (int i = 0; i < Table[0].size(); ++i) {
+        std::vector<double> Row(Table[0].size(), 0.0);
         if (i == 0 || i == Table[0].size() - 1) {
             Row[i] = 1.0;
         }
@@ -325,6 +334,7 @@ std::vector<std::vector<double>> GetMatrixForComputingC(std::vector<std::vector<
             Row[i + 1] = H[i];
         }
         Matrix[i] = Row;
+
     }
     return Matrix;
 }
