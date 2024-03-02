@@ -273,12 +273,12 @@ std::vector<std::vector<double>> GetSplineCoefficients(std::vector<std::vector<d
     }
     std::vector<double> C = SweepMethod(GetMatrixForComputingC(Table), FreeMembersColumn); //Нахождение С методом прогонки
     std::vector<double> D(Table[1].size()-1);  //-1 потому что количество интервалов меньше на 1
-    for (int i = 0; i < D.size() - 1; i++) { //H[i-1] везде потому что интервалов на 1 меньше 
-        D[i] = (C[i + 1] - C[i]) / H[i];
+    std::vector<double> B(Table[1].size() - 1);
+    for (int i = 0; i < D.size(); i++) { //H[i-1] везде потому что интервалов на 1 меньше 
+        D[i] = (C[i + 1] - C[i]) / (3.0*H[i]);
+        B[i] = (Table[1][i+1] - Table[1][i])/H[i] - (H[i]/3.0)*(2.0*C[i]+C[i+1]);
     }
-    std::vector<double> B(Table[1].size()-1); //-1 потому что количество интервалов меньше на 1
-    for (int i = 0; i < B.size() - 1; i++) 
-        B[i] = (H[i + 1] * C[i + 1] / 2) - (H[i + 1] * H[i + 1] * D[i + 1] / 6) + (Table[1][i + 1] - Table[1][i]) / H[i + 1];
+        
 
 
     for (int i = 0; i < B.size(); i++)
