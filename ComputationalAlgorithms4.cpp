@@ -265,8 +265,8 @@ std::vector<std::vector<double>> GetSplineCoefficients(std::vector<std::vector<d
     for (int i = 1; i < FreeMembersColumn.size()-2; ++i) //Из СЛАУ для нахождения С
         FreeMembersColumn[i] = 6 * ((Table[1][i + 1] - Table[1][i]) / H[i+1] - (Table[1][i] - Table[1][i - 1]) / H[i]);
     std::vector<double> C = SweepMethod(GetMatrixForComputingC(Table), FreeMembersColumn); //Нахождение С методом прогонки
-    std::vector<double> D(Table[1].size()-1);  //-1 потому что количество интервалов меньше на 1
-    std::vector<double> B(Table[1].size() - 1); //-1 потому что количество интервалов меньше на 1
+    std::vector<double> D(Table[1].size()-1);  //-1 потому что количество интервалов меньше на 1 чем переменных
+    std::vector<double> B(Table[1].size() - 1); //-1 потому что количество интервалов меньше на 1 чем переменных
     for (int i = 0; i < D.size(); i++) {
         D[i] = (C[i + 1] - C[i]) / (3.0*H[i]);
         B[i] = (Table[1][i+1] - Table[1][i])/H[i] - (H[i]/3.0)*(2.0*C[i]+C[i+1]); //???
@@ -280,21 +280,36 @@ double GetFunctionBySpline(std::vector<std::vector<double>> Table, std::vector<s
         return SplineCoefficients[0][0];
     for (int i = 1; i < Table[0].size(); ++i) {
         if (Table[0][i - 1] <= PointX && PointX <= Table[0][i]) {
-            return SplineCoefficients[0][i] + SplineCoefficients[1][i - 1] * (PointX - Table[0][i]) + SplineCoefficients[2][i - 1] / 2
-                * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i - 1] / 6 * (PointX - Table[0][i]) * 
+            std::cout << "S=" << SplineCoefficients[0][i] << "+" << SplineCoefficients[1][i - 1] << "*(" <<
+                PointX << "-" << Table[0][i] << ")+" << SplineCoefficients[2][i - 1] << "/2*("
+                << PointX << "-" << Table[0][i] << ")^2+" << SplineCoefficients[3][i - 1] << "/6*(" <<
+                PointX << "-" << Table[0][i] << ")^3" << std::endl;
+            return SplineCoefficients[0][i] + SplineCoefficients[1][i - 1] * (PointX - Table[0][i]) + SplineCoefficients[2][i - 1] / 2.0
+                * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i - 1] / 6.0 * (PointX - Table[0][i]) * 
                 (PointX - Table[0][i]) * (PointX - Table[0][i]);
         }
+
     }
+
+    //По формуле верно, но невзки появляются 
+    /*
+    for (int i = 0; i < Table[0].size()-1; ++i) {
+        if (Table[0][i] <= PointX && PointX <= Table[0][i+1]) {
+            return SplineCoefficients[0][i] + SplineCoefficients[1][i] * (PointX - Table[0][i]) + SplineCoefficients[2][i] / 2
+                * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i] / 6 * (PointX - Table[0][i]) *
+                (PointX - Table[0][i]) * (PointX - Table[0][i]);
+        }
+    }*/
     return 0.0;
 }
 //Вывод сплайна
 void SplineOutput(std::vector<std::vector<double>> Table)
 {
     std::vector <std::vector<double>> Coefficients = GetSplineCoefficients(Table);
-    for (int i = 0; i < Coefficients[0].size()-1; i++)
+    for (int i = 1; i < Table[0].size(); i++)
     {
-        std::cout << "S=" << Coefficients[0][i] << "+" << Table[1][i] << "*(x-" << Table[0][i] << ")+";
-        std::cout << Coefficients[2][i] << "/2*(x-" << Table[0][i] << ")^2+" << Coefficients[3][i] << "/6*(x-";
+        std::cout << "S=" << Coefficients[0][i] << "+" << Table[1][i-1] << "(x-" << Table[0][i] << ")+";
+        std::cout << Coefficients[2][i-1] << "/2*(x-" << Table[0][i] << ")^2+" << Coefficients[3][i-1] << "/6*(x-";
         std::cout << Table[0][i] << ")^3" << std::endl;
     }
 }
