@@ -64,7 +64,16 @@ int main()
         std::cout << "Введите точку для определения приближенного значения функции: ";
         double PointX;
         std::cin >> PointX;
-        std::cout << "y = " << GetFunctionBySpline(Table, GetSplineCoefficients(Table), PointX) << std::endl;
+        for (int i = 0; i < 40; i++) {
+            std::cout << PointX << std::endl;
+            PointX += 0.05;
+        }
+        PointX = -1;
+        std::cout << std::endl;
+        for (int i = 0; i < 40; i++) {
+            std::cout << GetFunctionBySpline(Table, GetSplineCoefficients(Table), PointX) << std::endl;
+            PointX += 0.05;
+        }
         break;
     case '2':
         std::cout << "Пример функции: sqrt(abs(x))" << std::endl;
@@ -280,10 +289,10 @@ double GetFunctionBySpline(std::vector<std::vector<double>> Table, std::vector<s
         return SplineCoefficients[0][0];
     for (int i = 1; i < Table[0].size(); ++i) {
         if (Table[0][i - 1] <= PointX && PointX <= Table[0][i]) {
-            std::cout << "S=" << SplineCoefficients[0][i] << "+" << SplineCoefficients[1][i - 1] << "*(" <<
+            /*std::cout << "S=" << SplineCoefficients[0][i] << "+" << SplineCoefficients[1][i - 1] << "*(" <<
                 PointX << "-" << Table[0][i] << ")+" << SplineCoefficients[2][i - 1] << "/2*("
                 << PointX << "-" << Table[0][i] << ")^2+" << SplineCoefficients[3][i - 1] << "/6*(" <<
-                PointX << "-" << Table[0][i] << ")^3" << std::endl;
+                PointX << "-" << Table[0][i] << ")^3" << std::endl;*/
             return SplineCoefficients[0][i] + SplineCoefficients[1][i - 1] * (PointX - Table[0][i]) + SplineCoefficients[2][i - 1] / 2.0
                 * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i - 1] / 6.0 * (PointX - Table[0][i]) * 
                 (PointX - Table[0][i]) * (PointX - Table[0][i]);
