@@ -17,7 +17,6 @@ std::vector<std::vector<double>> GetSplineCoefficients(std::vector<std::vector<d
 std::vector<double> GetIntervals(std::vector<double> X);
 std::vector<double> SweepMethod(std::vector<std::vector<double>> Matrix, std::vector<double> FreeMembersColumn);
 double GetFunctionBySpline(std::vector<std::vector<double>> Table, std::vector<std::vector<double>> SplineCoefficients, double PointX);
-void SplineOutput(std::vector<std::vector<double>> Table);
 std::vector<std::vector<double>> GetMatrixForComputingC(std::vector<std::vector<double>> Table);
 std::vector<double> SetAlphas(std::vector<std::vector<double>> Matrix, std::vector<double> FreeMembersColumn);
 std::vector<double> SetBettas(std::vector<std::vector<double>> Matrix, std::vector<double> FreeMembersColumn, 
@@ -68,7 +67,7 @@ int main()
             std::cout << PointX << std::endl;
             PointX += 0.05;
         }
-        PointX = -1;
+        PointX = -1.0;
         std::cout << std::endl;
         for (int i = 0; i < 40; i++) {
             std::cout << GetFunctionBySpline(Table, GetSplineCoefficients(Table), PointX) << std::endl;
@@ -83,7 +82,6 @@ int main()
         Table = GetTableByFunction(ArgumentValuesArray, Function);
         std::cout << "Таблица значений функции: " << std::endl;
         TableOutput(Table, std::cout);
-        SplineOutput(Table);
         Deviations = GetDeviations(Table);
         std::cout << std::endl << "Отклонения: " << std::endl;
         VectorOutput(Deviations, std::cout);
@@ -195,8 +193,11 @@ std::vector<exprtk::expression<double>> MakeExpressionTable(std::vector<exprtk::
 std::vector<double> GetDeviations(std::vector<std::vector<double>> Table)
 {
     std::vector<double> Deviations(Table[0].size());
-    for (int i = 0; i < Table[0].size(); i++)
+    for (int i = 0; i < Table[0].size(); i++) {
         Deviations[i] = fabs(Table[1][i] - GetFunctionBySpline(Table, GetSplineCoefficients(Table), Table[0][i]));
+        std::cout << "y = " << Table[1][i];
+        std::cout << " = " << GetFunctionBySpline(Table, GetSplineCoefficients(Table), Table[0][i]) << std::endl;
+    }
     return Deviations;
 }
 //Вывод вектора
@@ -287,40 +288,28 @@ double GetFunctionBySpline(std::vector<std::vector<double>> Table, std::vector<s
 {
     if (PointX == Table[0][0])
         return SplineCoefficients[0][0];
-    for (int i = 1; i < Table[0].size(); ++i) {
+    /*for (int i = 1; i < Table[0].size(); ++i) {
         if (Table[0][i - 1] <= PointX && PointX <= Table[0][i]) {
             /*std::cout << "S=" << SplineCoefficients[0][i] << "+" << SplineCoefficients[1][i - 1] << "*(" <<
                 PointX << "-" << Table[0][i] << ")+" << SplineCoefficients[2][i - 1] << "/2*("
                 << PointX << "-" << Table[0][i] << ")^2+" << SplineCoefficients[3][i - 1] << "/6*(" <<
-                PointX << "-" << Table[0][i] << ")^3" << std::endl;*/
+                PointX << "-" << Table[0][i] << ")^3" << std::endl;
             return SplineCoefficients[0][i] + SplineCoefficients[1][i - 1] * (PointX - Table[0][i]) + SplineCoefficients[2][i - 1] / 2.0
                 * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i - 1] / 6.0 * (PointX - Table[0][i]) * 
                 (PointX - Table[0][i]) * (PointX - Table[0][i]);
         }
-
-    }
+    } */
 
     //По формуле верно, но невзки появляются 
-    /*
+    
     for (int i = 0; i < Table[0].size()-1; ++i) {
         if (Table[0][i] <= PointX && PointX <= Table[0][i+1]) {
             return SplineCoefficients[0][i] + SplineCoefficients[1][i] * (PointX - Table[0][i]) + SplineCoefficients[2][i] / 2
                 * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i] / 6 * (PointX - Table[0][i]) *
                 (PointX - Table[0][i]) * (PointX - Table[0][i]);
         }
-    }*/
-    return 0.0;
-}
-//Вывод сплайна
-void SplineOutput(std::vector<std::vector<double>> Table)
-{
-    std::vector <std::vector<double>> Coefficients = GetSplineCoefficients(Table);
-    for (int i = 1; i < Table[0].size(); i++)
-    {
-        std::cout << "S=" << Coefficients[0][i] << "+" << Table[1][i-1] << "(x-" << Table[0][i] << ")+";
-        std::cout << Coefficients[2][i-1] << "/2*(x-" << Table[0][i] << ")^2+" << Coefficients[3][i-1] << "/6*(x-";
-        std::cout << Table[0][i] << ")^3" << std::endl;
     }
+    return 0.0;
 }
 //Создает матрицу для вычисления коэффициентов С
 std::vector<std::vector<double>> GetMatrixForComputingC(std::vector<std::vector<double>> Table)
