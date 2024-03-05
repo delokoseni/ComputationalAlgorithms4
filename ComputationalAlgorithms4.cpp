@@ -22,7 +22,7 @@ std::vector<double> SetAlphas(std::vector<std::vector<double>> Matrix, std::vect
 std::vector<double> SetBettas(std::vector<std::vector<double>> Matrix, std::vector<double> FreeMembersColumn, 
                               std::vector<double> Alphas);
 
-//splineoutput and GetFunctionBySpline наверно неправильные
+//Deviations!!! ПОЧИСТИТЬ КОММЕНТАРИИ
 
 
 int main()
@@ -53,7 +53,6 @@ int main()
     std::vector<double> ArgumentValuesArray(AmountOfValues); //Массив значений аргументов (для режима 2)
     std::vector<double> Deviations(AmountOfValues); //Отклонения
     double MaxDeviation = 0.0; //Максимальное отклонение
-    double j = 0.1;
     switch (SelectedMode)
     {
     case '1':
@@ -67,12 +66,12 @@ int main()
             std::cout << PointX << std::endl;
             PointX += 0.05;
         }
-        PointX = -1.0;
-        std::cout << std::endl;
+        PointX = -1;
         for (int i = 0; i < 40; i++) {
             std::cout << GetFunctionBySpline(Table, GetSplineCoefficients(Table), PointX) << std::endl;
             PointX += 0.05;
         }
+        //std::cout << "y = " << GetFunctionBySpline(Table, GetSplineCoefficients(Table), PointX) << std::endl;
         break;
     case '2':
         std::cout << "Пример функции: sqrt(abs(x))" << std::endl;
@@ -189,22 +188,22 @@ std::vector<exprtk::expression<double>> MakeExpressionTable(std::vector<exprtk::
             std::cout << "Ошибка в выражении!\n";
     return Expression; //Возвращается вектор скомпилированных выражений
 }
-//Подсчитывает отклонения
-std::vector<double> GetDeviations(std::vector<std::vector<double>> Table)
-{
-    std::vector<double> Deviations(Table[0].size());
-    for (int i = 0; i < Table[0].size(); i++) {
-        Deviations[i] = fabs(Table[1][i] - GetFunctionBySpline(Table, GetSplineCoefficients(Table), Table[0][i]));
-        std::cout << "y = " << Table[1][i];
-        std::cout << " = " << GetFunctionBySpline(Table, GetSplineCoefficients(Table), Table[0][i]) << std::endl;
-    }
-    return Deviations;
-}
 //Вывод вектора
 void VectorOutput(std::vector<double> Vector, std::ostream& Stream)
 {
     for (int i = 0; i < Vector.size(); i++)
         Stream << Vector[i] << std::endl;
+}
+//Подсчитывает отклонения
+std::vector<double> GetDeviations(std::vector<std::vector<double>> Table)
+{
+    std::vector<double> Deviations(Table[0].size());
+    for (int i = 0; i < Deviations.size(); i++) {
+        Deviations[i] = fabs(Table[1][i] - GetFunctionBySpline(Table, GetSplineCoefficients(Table), Table[0][i]));
+        std::cout << "y = " << Table[1][i];
+        std::cout << " = " << GetFunctionBySpline(Table, GetSplineCoefficients(Table), Table[0][i]) << std::endl;
+    }
+    return Deviations;
 }
 //Метод прогонки
 std::vector<double> SweepMethod(std::vector<std::vector<double>> Matrix, std::vector<double> FreeMembersColumn)
@@ -222,7 +221,6 @@ std::vector<double> SweepMethod(std::vector<std::vector<double>> Matrix, std::ve
             X[i] = Alphas[i] * X[i + 1] + Bettas[i];
         }
     }
-    //костыль
     for (int i = 0; i < X.size(); i++)
         X[i] /= 2.0;
     return X;
@@ -286,29 +284,11 @@ std::vector<std::vector<double>> GetSplineCoefficients(std::vector<std::vector<d
 //Вычисляет значение y используя сплайн
 double GetFunctionBySpline(std::vector<std::vector<double>> Table, std::vector<std::vector<double>> SplineCoefficients, double PointX)
 {
-    if (PointX == Table[0][0])
-        return SplineCoefficients[0][0];
-    /*for (int i = 1; i < Table[0].size(); ++i) {
-        if (Table[0][i - 1] <= PointX && PointX <= Table[0][i]) {
-            /*std::cout << "S=" << SplineCoefficients[0][i] << "+" << SplineCoefficients[1][i - 1] << "*(" <<
-                PointX << "-" << Table[0][i] << ")+" << SplineCoefficients[2][i - 1] << "/2*("
-                << PointX << "-" << Table[0][i] << ")^2+" << SplineCoefficients[3][i - 1] << "/6*(" <<
-                PointX << "-" << Table[0][i] << ")^3" << std::endl;
-            return SplineCoefficients[0][i] + SplineCoefficients[1][i - 1] * (PointX - Table[0][i]) + SplineCoefficients[2][i - 1] / 2.0
-                * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i - 1] / 6.0 * (PointX - Table[0][i]) * 
+    for (int i = 0; i < Table[0].size()-1; ++i) 
+        if (Table[0][i] <= PointX && PointX <= Table[0][i+1]) 
+            return SplineCoefficients[0][i] + SplineCoefficients[1][i] * (PointX - Table[0][i]) + SplineCoefficients[2][i]
+                * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i] * (PointX - Table[0][i]) *
                 (PointX - Table[0][i]) * (PointX - Table[0][i]);
-        }
-    } */
-
-    //По формуле верно, но невзки появляются 
-    
-    for (int i = 0; i < Table[0].size()-1; ++i) {
-        if (Table[0][i] <= PointX && PointX <= Table[0][i+1]) {
-            return SplineCoefficients[0][i] + SplineCoefficients[1][i] * (PointX - Table[0][i]) + SplineCoefficients[2][i] / 2
-                * (PointX - Table[0][i]) * (PointX - Table[0][i]) + SplineCoefficients[3][i] / 6 * (PointX - Table[0][i]) *
-                (PointX - Table[0][i]) * (PointX - Table[0][i]);
-        }
-    }
     return 0.0;
 }
 //Создает матрицу для вычисления коэффициентов С
@@ -327,7 +307,6 @@ std::vector<std::vector<double>> GetMatrixForComputingC(std::vector<std::vector<
             Row[i + 1] = H[i];
         }
         Matrix[i] = Row;
-
     }
     return Matrix;
 }
